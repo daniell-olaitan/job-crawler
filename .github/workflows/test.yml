@@ -1,11 +1,15 @@
-name: Test and Conditional Auto Merge
+name: Auto Merge Pull Request
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [synchronize, opened, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  test-and-merge:
+  merge:
     runs-on: ubuntu-latest
 
     services:
@@ -18,56 +22,61 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
-    - name: Run tests
-      env:
-        DB_NAME: job_crawler_db
-        DB_HOST: "localhost"
-        DB_PORT: 27017
-      run: |
-        python -m unittest
+      - name: Run unit tests
+        run: |
+          python -m unittest discover -s tests
 
-    - name: Check for merge conflicts
-      id: conflicts
-      run: |
-        git fetch origin ${{ github.base_ref }}
-        git merge --no-commit --no-ff origin/${{ github.base_ref }} || echo "::set-output name=conflicts::true"
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
 
-    - name: Check if PR author is a collaborator
-      id: collaborator
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const { data: permissions } = await github.repos.getCollaboratorPermissionLevel({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            username: context.payload.pull_request.user.login,
-          });
-          return permissions.permission === 'admin' || permissions.permission === 'write';
-      outputs:
-        is-collaborator: ${{ steps.collaborator.outputs.result }}
+      - name: Check if contributor is a collaborator
+        id: check_collaborator
+        uses: actions/github-script@v6
+        with:
+          script: |
+            try {
+              const collaborator = await github.rest.repos.checkCollaborator({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: context.payload.pull_request.user.login
+              });
+              return collaborator.status === 204;
+            } catch (error) {
+              core.setFailed("Contributor is not a collaborator.");
+              return false;
+            }
 
-    - name: Merge pull request if collaborator
-      if: success() && steps.conflicts.outputs.conflicts != 'true' && steps.collaborator.outputs['is-collaborator'] == 'true'
-      uses: peter-evans/merge-pull-request@v3
-      with:
-        merge-method: squash
-        commit-message: "Auto-merged PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}"
+      - name: Fail if contributor is not a collaborator
+        if: steps.check_collaborator.outputs.result != 'true'
+        run: |
+          echo "The contributor is not a collaborator. Failing..."
+          exit 1
 
-    - name: Require review
-      if: success() && steps.conflicts.outputs.conflicts != 'true' && steps.collaborator.outputs['is-collaborator'] == 'false'
-      run: echo "A review is required for this pull request."
+      - name: Attempt automatic merge
+        if: steps.check_collaborator.outputs.result == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git fetch origin +refs/pull/${{ github.event.pull_request.number }}/merge
+          if git merge-base --is-ancestor FETCH_HEAD HEAD; then
+            echo "No merge conflicts. Merging..."
+            gh pr merge ${{ github.event.pull_request.number }} --merge --repo ${{ github.repository }}
+          else
+            echo "Merge conflicts found. Cannot auto-merge."
+            exit 1
+          fi
