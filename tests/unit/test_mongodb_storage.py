@@ -71,4 +71,4 @@ class TestMongoDBStorage(unittest.TestCase):
         self.db.delete(self.mock_collection, mock_id)
 
         mock_find.assert_called_with(self.mock_collection, id=mock_id)
-        self.mock_doc.delete.assert_called_once()
+        self.mock_doc.delete.assert_called_once(2)
