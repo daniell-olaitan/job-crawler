@@ -47,3 +47,6 @@ class TestMongoDBStorage(unittest.TestCase):
 
         self.assertEqual(objs, [self.mock_obj])
         self.mock_collection.objects.assert_called_once_with(**self.mock_kwargs)
+
+    def test_update(self):
+        pass
