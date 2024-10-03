@@ -37,14 +37,19 @@ jobs:
 
       - name: Check if contributor is a collaborator
         id: check_collaborator
-        uses: octokit/request-action@v3
+        uses: actions/github-script@v6
         with:
-          route: GET /repos/${{ github.repository }}/collaborators/${{ github.event.pull_request.user.login }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: collaborator } = await github.repos.checkCollaborator({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.pull_request.user.login
+            });
+            return collaborator;
         continue-on-error: true
 
       - name: Fail if contributor is not a collaborator
-        if: steps.check_collaborator.outputs.status != '204'
+        if: steps.check_collaborator.conclusion == 'failure'
         run: |
           echo "The contributor is not a collaborator. Failing..."
           exit 1
@@ -55,7 +60,7 @@ jobs:
           sudo apt-get install -y gh
 
       - name: Attempt automatic merge
-        if: steps.check_collaborator.outputs.status == '204'
+        if: steps.check_collaborator.conclusion != 'failure'
         run: |
           git fetch origin +refs/pull/${{ github.event.pull_request.number }}/merge
           if git merge-base --is-ancestor FETCH_HEAD HEAD; then
