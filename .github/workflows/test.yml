@@ -1,8 +1,8 @@
-name: Test and Conditional Auto Merge
+name: Auto Merge Pull Request
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [synchronize, opened, reopened]
 
 jobs:
   test-and-merge:
@@ -20,54 +20,66 @@ jobs:
           --health-retries=5
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
-    - name: Run tests
-      env:
-        DB_NAME: job_crawler_db
-        DB_HOST: "localhost"
-        DB_PORT: 27017
-      run: |
-        python -m unittest
+      - name: Run unit tests
+        run: |
+          python -m unittest discover -s tests
 
-    - name: Check for merge conflicts
-      id: conflicts
-      run: |
-        git fetch origin ${{ github.base_ref }}
-        git merge --no-commit --no-ff origin/${{ github.base_ref }} || echo "::set-output name=conflicts::true"
+      - name: Check if user is a collaborator
+        id: collaborator_check
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: collaborators } = await github.repos.listCollaborators({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
 
-    - name: Check if PR author is a collaborator
-      id: collaborator
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const { data: permissions } = await github.repos.getCollaboratorPermissionLevel({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            username: context.payload.pull_request.user.login,
-          });
-          return permissions.permission === 'admin' || permissions.permission === 'write';
-      outputs:
-        is-collaborator: ${{ steps.collaborator.outputs.result }}
+            const prUser = context.payload.pull_request.user.login;
+            const isCollaborator = collaborators.some(collaborator => collaborator.login === prUser);
 
-    - name: Merge pull request if collaborator
-      if: success() && steps.conflicts.outputs.conflicts != 'true' && steps.collaborator.outputs['is-collaborator'] == 'true'
-      uses: peter-evans/merge-pull-request@v3
-      with:
-        merge-method: squash
-        commit-message: "Auto-merged PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}"
+            core.setOutput('isCollaborator', isCollaborator);
 
-    - name: Require review
-      if: success() && steps.conflicts.outputs.conflicts != 'true' && steps.collaborator.outputs['is-collaborator'] == 'false'
-      run: echo "A review is required for this pull request."
+      - name: Get PR information
+        id: pr_info
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+
+            const mergeable = pr.data.mergeable;
+            const mergeable_state = pr.data.mergeable_state;
+            const approvals = await github.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            const hasApproval = approvals.data.filter(review => review.state === 'APPROVED').length > 0;
+            core.setOutput('mergeable', mergeable && mergeable_state === 'clean');
+            core.setOutput('hasApproval', hasApproval);
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Merge Pull Request if allowed
+        if: steps.pr_info.outputs.mergeable == 'true' && (steps.collaborator_check.outputs.isCollaborator == 'true' || steps.pr_info.outputs.hasApproval == 'true')
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} --squash --merge --admin
