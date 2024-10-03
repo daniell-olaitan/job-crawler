@@ -9,7 +9,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  merge:
+  auto-merge:
     runs-on: ubuntu-latest
 
     services:
