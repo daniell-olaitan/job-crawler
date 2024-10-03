@@ -3,6 +3,13 @@ name: Auto Merge Pull Request
 on:
   pull_request:
     types: [synchronize, opened, reopened]
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: read
+  issues: read
+  actions: read
 
 jobs:
   test-and-merge:
@@ -80,6 +87,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gh
+
+      - name: Debug Outputs
+        run: |
+          echo "Mergeable: ${{ steps.pr_info.outputs.mergeable }}"
+          echo "Is Collaborator: ${{ steps.collaborator_check.outputs.isCollaborator }}"
+          echo "Has Approval: ${{ steps.pr_info.outputs.hasApproval }}"
 
       - name: Merge Pull Request if allowed
         if: steps.pr_info.outputs.mergeable == 'true' && (
