@@ -21,10 +21,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: '3.x'
 
@@ -40,14 +40,15 @@ jobs:
         id: collaborator_check
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}  # Ensure token is available
           script: |
-            const { data: collaborators } = await github.repos.listCollaborators({
+            const collaborators = await github.rest.repos.listCollaborators({
               owner: context.repo.owner,
               repo: context.repo.repo
             });
 
             const prUser = context.payload.pull_request.user.login;
-            const isCollaborator = collaborators.some(collaborator => collaborator.login === prUser);
+            const isCollaborator = collaborators.data.some(collaborator => collaborator.login === prUser);
 
             core.setOutput('isCollaborator', isCollaborator);
 
@@ -55,8 +56,9 @@ jobs:
         id: pr_info
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}  # Ensure token is available
           script: |
-            const pr = await github.pulls.get({
+            const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number
@@ -64,7 +66,7 @@ jobs:
 
             const mergeable = pr.data.mergeable;
             const mergeable_state = pr.data.mergeable_state;
-            const approvals = await github.pulls.listReviews({
+            const approvals = await github.rest.pulls.listReviews({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number,
