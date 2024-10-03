@@ -82,6 +82,9 @@ jobs:
           sudo apt-get install -y gh
 
       - name: Merge Pull Request if allowed
-        if: steps.pr_info.outputs.mergeable == 'true' && (steps.collaborator_check.outputs.isCollaborator == 'true' || steps.pr_info.outputs.hasApproval == 'true')
+        if: steps.pr_info.outputs.mergeable == 'true' && (
+            (steps.collaborator_check.outputs.isCollaborator == 'true') ||
+            (steps.collaborator_check.outputs.isCollaborator == 'false' && steps.pr_info.outputs.hasApproval == 'true')
+          )
         run: |
           gh pr merge ${{ github.event.pull_request.number }} --squash --merge --admin
