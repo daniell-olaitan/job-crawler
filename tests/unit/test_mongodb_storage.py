@@ -2,10 +2,12 @@
 """
 Module to test the MongoDBStorage
 """
-import uuid
 import unittest
 from models.engines.mongodb_storage import MongoDBStorage
-from unittest.mock import MagicMock
+from unittest.mock import (
+    patch,
+    MagicMock
+)
 
 
 class TestMongoDBStorage(unittest.TestCase):
@@ -48,5 +50,4 @@ class TestMongoDBStorage(unittest.TestCase):
         self.assertEqual(objs, [self.mock_obj])
         self.mock_collection.objects.assert_called_once_with(**self.mock_kwargs)
 
-    def test_update(self):
-        pass
+    # def test_update(self):

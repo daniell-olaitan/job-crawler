@@ -5,17 +5,7 @@ on:
     types: [synchronize, opened, reopened]
   workflow_dispatch:
 
-permissions:
-  pull-requests: write
-  contents: read
-  issues: read
-  actions: read
-
-jobs:
-  test-and-merge:
-    runs-on: ubuntu-latest
-
-    services:
+  services:
       mongodb:
         image: mongo:latest
         ports:
@@ -26,78 +16,63 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
+permissions:
+  pull-requests: write
+  contents: read
+  issues: read
+  actions: read
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
         with:
-          python-version: '3.x'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: Install dependencies
+      - name: Check collaborator
+        id: check-collaborator
         run: |
-          pip install -r requirements.txt
+          # Get the list of collaborators for the repository
+          github_api_url="https://api.github.com/repos/${{ github.repository }}/collaborators/${{ github.actor }}"
+          response=$(curl -s -X GET -H "Authorization: Bearer ${GITHUB_TOKEN}" "${github_api_url}")
 
-      - name: Run unit tests
+          # Check if the response indicates that the user is a collaborator
+          if echo "$response" | grep -q '"permissions": {"admin":'; then
+            echo "User is a collaborator."
+            echo "is_collaborator=true" >> $GITHUB_ENV
+          else
+            echo "User is NOT a collaborator."
+            echo "is_collaborator=false" >> $GITHUB_ENV
+          fi
+
+      - name: Check merge conflicts
         run: |
-          python -m unittest discover -s tests
+          merge_conflicts=$(git merge --no-commit --no-ff origin/${{ github.event.pull_request.base.ref }} origin/${{ github.event.pull_request.head.ref }} 2>&1)
+          if [[ $merge_conflicts == *"CONFLICT"* ]]; then
+            echo "Merge conflicts detected."
+            exit 1
+          fi
 
-      - name: Check if user is a collaborator
-        id: collaborator_check
+      - name: Merge PR
+        if: env.is_collaborator == 'true'
+        run: |
+          git merge --no-commit --no-ff origin/${{ github.event.pull_request.base.ref }} origin/${{ github.event.pull_request.head.ref }}
+          git push origin ${GITHUB_EVENT_PULL_REQUEST_BASE_REF}
+          # Update PR status to merged
+          github_api_url="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/merge"
+          curl -s -X PUT -H "Authorization: Bearer ${GITHUB_TOKEN}" -d '{"commit_title":"Automatically merged PR","commit_message":"This PR was automatically merged by the workflow.","sha":"${{ github.sha }}"}' "${github_api_url}"
+
+      - name: Comment on PR
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}  # Ensure token is available
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const collaborators = await github.rest.repos.listCollaborators({
-              owner: context.repo.owner,
-              repo: context.repo.repo
-            });
-
-            const prUser = context.payload.pull_request.user.login;
-            const isCollaborator = collaborators.data.some(collaborator => collaborator.login === prUser);
-
-            core.setOutput('isCollaborator', isCollaborator);
-
-      - name: Get PR information
-        id: pr_info
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}  # Ensure token is available
-          script: |
-            const pr = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number
-            });
-
-            const mergeable = pr.data.mergeable;
-            const mergeable_state = pr.data.mergeable_state;
-            const approvals = await github.rest.pulls.listReviews({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-            });
-
-            const hasApproval = approvals.data.filter(review => review.state === 'APPROVED').length > 0;
-            core.setOutput('mergeable', mergeable && mergeable_state === 'clean');
-            core.setOutput('hasApproval', hasApproval);
-
-      - name: Install GitHub CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gh
-
-      - name: Debug Outputs
-        run: |
-          echo "Mergeable: ${{ steps.pr_info.outputs.mergeable }}"
-          echo "Is Collaborator: ${{ steps.collaborator_check.outputs.isCollaborator }}"
-          echo "Has Approval: ${{ steps.pr_info.outputs.hasApproval }}"
-
-      - name: Merge Pull Request if allowed
-        if: steps.pr_info.outputs.mergeable == 'true' && (
-            (steps.collaborator_check.outputs.isCollaborator == 'true') ||
-            (steps.collaborator_check.outputs.isCollaborator == 'false' && steps.pr_info.outputs.hasApproval == 'true')
-          )
-        run: |
-          gh pr merge ${{ github.event.pull_request.number }} --squash --merge --admin
+            github.issues.createComment({
+              issue_number: github.context.pullRequest.number,
+              owner: github.context.repo.owner,
+              repo: github.context.repo.repo,
+              body: 'Automatically merged PR'
+            })
