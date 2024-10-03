@@ -50,4 +50,6 @@ class TestMongoDBStorage(unittest.TestCase):
         self.assertEqual(objs, [self.mock_obj])
         self.mock_collection.objects.assert_called_once_with(**self.mock_kwargs)
 
-    # def test_update(self):
+    # @patch('models.engines.mongodb_storage.MongoDBStorage.find')
+    # def test_update(self, mock_find: MagicMock):
+    #     mock_find.return_value =

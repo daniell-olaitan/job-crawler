@@ -5,7 +5,17 @@ on:
     types: [synchronize, opened, reopened]
   workflow_dispatch:
 
-  services:
+permissions:
+  pull-requests: write
+  contents: read
+  issues: read
+  actions: read
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+
+    services:
       mongodb:
         image: mongo:latest
         ports:
@@ -16,15 +26,6 @@ on:
           --health-timeout=5s
           --health-retries=5
 
-permissions:
-  pull-requests: write
-  contents: read
-  issues: read
-  actions: read
-
-jobs:
-  merge:
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
