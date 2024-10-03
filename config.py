@@ -8,6 +8,20 @@ from urllib.parse import quote_plus
 
 class Config:
     SECRET_KEY = getenv('SECRET_KEY')
+    DB_HOST = getenv('DB_HOST') or 'localhost'
+    DB_PORT = getenv('DB_PORT') or 27017
+    DB_NAME = getenv('DB_NAME')
+
+
+class TestConfig(Config):
+    pass
+
+
+class DevConfig(Config):
+    pass
+
+
+class DeployConfig(Config):
     MONGO_URI = "mongodb://{}:{}@{}:{}/{}".format(
         quote_plus(getenv('DB_USER')),
         quote_plus(getenv('DB_PASSWORD')),
@@ -16,28 +30,10 @@ class Config:
         getenv('DB_NAME')
     )
 
-    mongodb_details = {
-        'db': getenv('DATABASE_USERNAME_DEV'),
-        'host': getenv('DATABASE_PASSWORD'),
-        'port': getenv('DATABASE_DEV')
-    }
-
-
-class TestingConfig(Config):
-    pass
-
-
-class DevelopmentConfig(Config):
-    pass
-
-
-class DeploymentConfig(Config):
-    pass
-
 
 config = {
-    'default': TestingConfig,
-    'testing': TestingConfig,
-    'development': DevelopmentConfig,
-    'deployment': DeploymentConfig
+    'default': TestConfig,
+    'test': TestConfig,
+    'dev': DevConfig,
+    'deploy': DeployConfig
 }

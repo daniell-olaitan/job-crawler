@@ -1,0 +1,73 @@
+name: Test and Conditional Auto Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  test-and-merge:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run tests
+      env:
+        DB_NAME: job_crawler_db
+        DB_HOST: "localhost"
+        DB_PORT: 27017
+      run: |
+        python -m unittest
+
+    - name: Check for merge conflicts
+      id: conflicts
+      run: |
+        git fetch origin ${{ github.base_ref }}
+        git merge --no-commit --no-ff origin/${{ github.base_ref }} || echo "::set-output name=conflicts::true"
+
+    - name: Check if PR author is a collaborator
+      id: collaborator
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { data: permissions } = await github.repos.getCollaboratorPermissionLevel({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            username: context.payload.pull_request.user.login,
+          });
+          return permissions.permission === 'admin' || permissions.permission === 'write';
+      outputs:
+        is-collaborator: ${{ steps.collaborator.outputs.result }}
+
+    - name: Merge pull request if collaborator
+      if: success() && steps.conflicts.outputs.conflicts != 'true' && steps.collaborator.outputs['is-collaborator'] == 'true'
+      uses: peter-evans/merge-pull-request@v3
+      with:
+        merge-method: squash
+        commit-message: "Auto-merged PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}"
+
+    - name: Require review
+      if: success() && steps.conflicts.outputs.conflicts != 'true' && steps.collaborator.outputs['is-collaborator'] == 'false'
+      run: echo "A review is required for this pull request."
