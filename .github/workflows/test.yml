@@ -3,13 +3,6 @@ name: Auto Merge Pull Request
 on:
   pull_request:
     types: [synchronize, opened, reopened]
-  workflow_dispatch:
-
-permissions:
-  pull-requests: write
-  contents: read
-  issues: read
-  actions: read
 
 jobs:
   merge:
@@ -25,49 +18,49 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
         with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: |
+          python -m unittest discover -s tests
+
+      - name: Check if contributor is a collaborator
+        id: check_collaborator
+        uses: octokit/request-action@v3
+        with:
+          route: GET /repos/${{ github.repository }}/collaborators/${{ github.event.pull_request.user.login }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
+        continue-on-error: true
 
-      - name: Check collaborator
-        id: check-collaborator
+      - name: Fail if contributor is not a collaborator
+        if: steps.check_collaborator.outputs.status != '204'
         run: |
-          # Get the list of collaborators for the repository
-          github_api_url="https://api.github.com/repos/${{ github.repository }}/collaborators/${{ github.actor }}"
-          response=$(curl -s -X GET -H "Authorization: Bearer ${GITHUB_TOKEN}" "${github_api_url}")
+          echo "The contributor is not a collaborator. Failing..."
+          exit 1
 
-          # Check if the response indicates that the user is a collaborator
-          if echo "$response" | grep -q '"permissions": {"admin":'; then
-            echo "User is a collaborator."
-            echo "is_collaborator=true" >> $GITHUB_ENV
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Attempt automatic merge
+        if: steps.check_collaborator.outputs.status == '204'
+        run: |
+          git fetch origin +refs/pull/${{ github.event.pull_request.number }}/merge
+          if git merge-base --is-ancestor FETCH_HEAD HEAD; then
+            echo "No merge conflicts. Merging..."
+            gh pr merge ${{ github.event.pull_request.number }} --merge --repo ${{ github.repository }}
           else
-            echo "User is NOT a collaborator."
-            echo "is_collaborator=false" >> $GITHUB_ENV
-          fi
-
-      - name: Check merge conflicts
-        run: |
-          merge_conflicts=$(git merge --no-commit --no-ff origin/${{ github.event.pull_request.base.ref }} origin/${{ github.event.pull_request.head.ref }} 2>&1)
-          if [[ $merge_conflicts == *"CONFLICT"* ]]; then
-            echo "Merge conflicts detected."
+            echo "Merge conflicts found. Cannot auto-merge."
             exit 1
-          fi
-
-      - name: Merge PR
-        if: env.is_collaborator == 'true'
-        run: |
-          git merge --no-commit --no-ff origin/${{ github.event.pull_request.base.ref }} origin/${{ github.event.pull_request.head.ref }}
-          git push origin ${GITHUB_EVENT_PULL_REQUEST_BASE_REF}
-          # Update PR status to merged
-          github_api_url="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/merge"
-          curl -s -X PUT -H "Authorization: Bearer ${GITHUB_TOKEN}" -d '{"commit_title":"Automatically merged PR","commit_message":"This PR was automatically merged by the workflow.","sha":"${{ github.sha }}"}' "${github_api_url}"
-
-      - name: Comment on PR
-        run: |
-          curl -s -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -d '{"body":"Automatically merged PR"}' \
-          "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
