@@ -19,7 +19,8 @@ class  BaseModel:
     created_at = DateTimeField(default=datetime.now())
     updated_at = DateTimeField(default=datetime.now())
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.id = str(uuid.uuid4())
 
     def to_json(self) -> t.Dict[str, t.Any]:
