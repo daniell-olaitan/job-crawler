@@ -65,6 +65,8 @@ jobs:
 
       - name: Attempt automatic merge
         if: steps.check_collaborator.outputs.result == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git fetch origin +refs/pull/${{ github.event.pull_request.number }}/merge
           if git merge-base --is-ancestor FETCH_HEAD HEAD; then
