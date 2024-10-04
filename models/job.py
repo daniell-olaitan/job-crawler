@@ -2,7 +2,7 @@
 """
 Module for job model
 """
-from models.base_model import BaseModel
+from models.parent_model import ParentModel
 from mongoengine import (
     Document,
     URLField,
@@ -11,7 +11,7 @@ from mongoengine import (
 )
 
 
-class Job(BaseModel, Document):
+class Job(ParentModel, Document):
     """
     Class to create job document in the collection
     """
