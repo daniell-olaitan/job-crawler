@@ -9,8 +9,12 @@ from pymongo import MongoClient
 from config import config
 from flask import Flask
 from flask_cors import CORS
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager
 from mongoengine import connect
 
+app_bcrypt = Bcrypt()
+jwt = JWTManager()
 
 def create_app(app_env: str = 'default') -> Flask:
     app = Flask(__name__)
@@ -21,6 +25,8 @@ def create_app(app_env: str = 'default') -> Flask:
 
     app.register_blueprint(auth)
     app.register_blueprint(app_views)
+    app_bcrypt.init_app(app)
+    jwt.init_app(app)
     CORS(app, resources={
         r'/v1*': {
             'origins': '*'

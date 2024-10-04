@@ -3,8 +3,8 @@
 Module that abstracts mongodb storage
 """
 import typing as t
+from datetime import datetime
 from mongoengine import Document
-import uuid
 
 
 class MongoDBStorage:
@@ -16,7 +16,8 @@ class MongoDBStorage:
         """
         Create and insert new document in the collection
         """
-        doc = collection(id=str(uuid.uuid4()), **kwargs)
+        doc = collection(**kwargs)
+        doc.pre_save()
         doc.save()
 
         return doc
@@ -56,6 +57,8 @@ class MongoDBStorage:
         if doc:
             for key, val in kwargs.items():
                 setattr(doc, key, val)
+
+            self.updated_at = datetime.now()
             doc.save()
 
         return self.find(collection, id=id)
