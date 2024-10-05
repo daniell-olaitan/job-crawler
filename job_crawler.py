@@ -4,7 +4,7 @@ from os import getenv
 from flask import jsonify
 from flask.typing import ResponseReturnValue
 
-app = create_app(getenv('APP_DEV') or 'test')
+app = create_app(getenv('APP_DEV', 'dev'))
 
 
 # HTTP Error Handlers

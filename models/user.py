@@ -6,7 +6,8 @@ from app import app_bcrypt
 from models.parent_model import ParentModel
 from pydantic import (
     BaseModel,
-    EmailStr
+    EmailStr,
+    Field
 )
 from mongoengine import (
     Document,
@@ -16,10 +17,10 @@ from mongoengine import (
 
 
 class UserCreateValidator(BaseModel):
-    first_name: str
-    last_name: str
     email: EmailStr
-    password: str
+    first_name: str = Field(..., min_length=2)
+    last_name: str = Field(..., min_length=2)
+    password: str = Field(..., min_length=8)
 
     class Config:
         extra = 'forbid'
@@ -27,7 +28,7 @@ class UserCreateValidator(BaseModel):
 
 class UserLoginValidator(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=8)
 
     class Config:
         extra = 'forbid'

@@ -14,8 +14,8 @@ class InvalidToken(ParentModel, Document):
     jti = StringField(required=True,  max_length=60)
 
     @classmethod
-    def verify_jti(cls, jti: str) -> bool:
+    def verify_jti(self, jti: str) -> bool:
         """
         Verify the JWT identity
         """
-        return bool(db.find(cls, jti=jti))
+        return bool(db.find(self, jti=jti))

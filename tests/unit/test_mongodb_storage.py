@@ -2,7 +2,18 @@
 """
 Module to test the MongoDBStorage
 """
+import os
+import sys
+
+# This will allow this test file to be run from the current directory
+# using python3 <test_file.py> or <./test_file.py>
+current_directory = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_directory, "..", ".."))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+
 import unittest
+from os import getenv
 from models.engines.mongodb_storage import MongoDBStorage
 from unittest.mock import (
     patch,
@@ -51,7 +62,9 @@ class TestMongoDBStorage(unittest.TestCase):
         self.mock_collection.objects.assert_called_once_with(**self.mock_kwargs)
 
     @patch('models.engines.mongodb_storage.MongoDBStorage.find')
-    def test_update(self, mock_find: MagicMock):
+    @patch('models.engines.mongodb_storage.datetime')
+    def test_update(self, mock_datetime_now: MagicMock, mock_find: MagicMock):
+        mock_datetime_now.now.return_value = 'now'
         mock_doc = MagicMock(name='testname', value='testvalue')
         mock_find.return_value = mock_doc
         mock_id = 'uuid'
@@ -61,6 +74,7 @@ class TestMongoDBStorage(unittest.TestCase):
         mock_find.assert_called_with(self.mock_collection, id=mock_id)
         self.assertEqual(doc.name, 'test')
         self.assertEqual(doc.value, 'mock_test')
+        self.assertEqual(mock_doc.updated_at, 'now')
         mock_doc.save.assert_called_once()
 
     @patch('models.engines.mongodb_storage.MongoDBStorage.find')
@@ -72,3 +86,34 @@ class TestMongoDBStorage(unittest.TestCase):
 
         mock_find.assert_called_with(self.mock_collection, id=mock_id)
         self.mock_doc.delete.assert_called_once()
+
+    @patch('models.engines.mongodb_storage.get_db')
+    @patch('models.engines.mongodb_storage.connect')
+    @patch('models.engines.mongodb_storage.disconnect')
+    def test_drop_database(
+        self,
+        mock_disconnect: MagicMock,
+        mock_connect: MagicMock,
+        mock_get_db: MagicMock
+    ) -> None:
+        mock_db = MagicMock()
+        mock_db.name = "job_crawler_db"
+        mock_client = MagicMock()
+        mock_db.client = mock_client
+        mock_get_db.return_value = mock_db
+
+        self.db.drop_database()
+
+        mock_get_db.assert_called_once()
+        mock_disconnect.assert_called_once()
+        mock_connect.assert_called_once_with(
+            'job_crawler_db',
+            host='localhost',
+            port=27017
+        )
+
+        mock_db.client.drop_database.assert_called_once_with('job_crawler_db')
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -3,7 +3,6 @@
 Module for authentication
 """
 from models import db
-from app import app_bcrypt
 from models.user import User
 import typing as t
 from flask import jsonify

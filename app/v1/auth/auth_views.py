@@ -103,7 +103,7 @@ def login() -> ResponseReturnValue:
                 'user': user.to_dict(),
                 'access_token': access_token
             }
-        })
+        }), 200
 
     return jsonify({
         'status': 'fail',

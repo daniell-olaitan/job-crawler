@@ -5,7 +5,7 @@ Module to define the function to create the application instance
 from dotenv import load_dotenv
 load_dotenv()
 
-from pymongo import MongoClient
+from models import db
 from config import config
 from flask import Flask
 from flask_cors import CORS
@@ -16,7 +16,7 @@ from mongoengine import connect
 app_bcrypt = Bcrypt()
 jwt = JWTManager()
 
-def create_app(app_env: str = 'default') -> Flask:
+def create_app(app_env: str) -> Flask:
     app = Flask(__name__)
     app.url_map.strict_slashes = False
     app.config.from_object(config[app_env])
@@ -34,17 +34,14 @@ def create_app(app_env: str = 'default') -> Flask:
     })
 
     if app_env in ['test', 'dev']:
-        DB_NAME = app.config['DB_NAME']
-        DB_HOST = app.config['DB_HOST']
-        DB_PORT = app.config['DB_PORT']
+        if app_env == 'dev':
+            db.drop_database()
 
-        client = MongoClient(DB_HOST, DB_PORT)
-        db_list = client.list_database_names()
-
-        if DB_NAME in db_list:
-            client.drop_database(DB_NAME)
-
-        connect(DB_NAME, host=DB_HOST, port=DB_PORT)
+        connect(
+            app.config['DB_NAME'],
+            host=app.config['DB_HOST'],
+            port=app.config['DB_PORT']
+        )
     else:
         connect(host=app.config['MONGO_URI'])
 
