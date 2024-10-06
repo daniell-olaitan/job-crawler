@@ -5,63 +5,9 @@ Module for authentication
 from models import db
 from models.user import User
 import typing as t
-from flask import jsonify
-from app import jwt
-from models.invalid_token import InvalidToken
 from flask.typing import ResponseReturnValue
 
 ModelType = t.TypeVar('Model')
-
-
-@jwt.token_in_blocklist_loader
-def check_if_token_is_blacklisted(
-    jwt_header: t.Mapping[str, str],
-    jwt_payload: t.Mapping[str, str]
-) -> bool:
-    """
-    Check if user has logged out
-    """
-    jti = jwt_payload['jti']
-    return InvalidToken.verify_jti(jti)
-
-
-@jwt.expired_token_loader
-def expired_token_callback(
-    jwt_header: t.Mapping[str, str],
-    jwt_payload: t.Mapping[str, str]
-) -> ResponseReturnValue:
-    """
-    Check if access_token has expired
-    """
-    return jsonify({
-        'status': 'fail',
-        'data': {'token': 'token has expired'},
-    }), 401
-
-
-@jwt.revoked_token_loader
-def revoked_token_callback(
-    jwt_header: t.Mapping[str, str],
-    jwt_payload: t.Mapping[str, str]
-) -> ResponseReturnValue:
-    """
-    Check if access_token has been revoked
-    """
-    return jsonify({
-        'status': 'fail',
-        'data': {'token': 'token has been revoked'},
-    }), 401
-
-
-@jwt.unauthorized_loader
-def unauthorized_callback(_) -> ResponseReturnValue:
-    """
-    Handle unauthorized access
-    """
-    return jsonify({
-        'status': 'fail',
-        'data': {'token': 'missing access token'},
-    }), 401
 
 
 class Auth:
