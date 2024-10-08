@@ -25,10 +25,10 @@ def create_app(app_env: str) -> Flask:
     app.url_map.strict_slashes = False
     app.config.from_object(config[app_env])
     from app.auth import auth
-    from app.app_views import app_views
+    from app.user import user_views
 
     app.register_blueprint(auth)
-    app.register_blueprint(app_views)
+    app.register_blueprint(user_views)
     app_bcrypt.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)

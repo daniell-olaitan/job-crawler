@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Job Seeker Dashboard - Job Crawler{% endblock %}
+
+{% block content %}
+    <div class="content-container">
+        <h2>Job Seeker Dashboard</h2>
+
+        <!-- Section for Managing Job Applications -->
+        <div class="dashboard-section">
+            <h3>Your Job Applications</h3>
+
+            <!-- Table to display job applications -->
+            <table class="job-table">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Date Applied</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                    <tr>
+                        <td>{{ application.job_title }}</td>
+                        <td>{{ application.company_name }}</td>
+                        <td>{{ application.date_applied.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ application.status }}</td>
+                        <td>
+                            <!-- View Job Button -->
+                            <a href="{{ url_for('job.view', job_id=application.job_id) }}" class="btn-table">View Job</a>
+
+                            <!-- Withdraw Application Button -->
+                            <a href="{{ url_for('application.withdraw', app_id=application.id) }}" class="btn-table withdraw-btn">Withdraw</a>
+
+                            <!-- Update Documents Button -->
+                            <a href="{{ url_for('application.update_docs', app_id=application.id) }}" class="btn-table">Update Docs</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Message if no applications are found -->
+            {% if applications|length == 0 %}
+                <p>You have not applied for any jobs yet.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
