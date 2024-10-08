@@ -11,28 +11,32 @@ from flask import Flask
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from mongoengine import connect
+from flask_login import LoginManager
+from flask_mail import Mail
 
 app_bcrypt = Bcrypt()
+login_manager = LoginManager()
+mail = Mail()
+login_manager.login_view = 'auth.login'
+
 
 def create_app(app_env: str) -> Flask:
     app = Flask(__name__)
     app.url_map.strict_slashes = False
     app.config.from_object(config[app_env])
-    from app.v1.auth import auth
-    from app.v1.app_views import app_views
+    from app.auth import auth
+    from app.app_views import app_views
 
     app.register_blueprint(auth)
     app.register_blueprint(app_views)
     app_bcrypt.init_app(app)
-    CORS(app, resources={
-        r'/v1*': {
-            'origins': '*'
-        }
-    })
+    login_manager.init_app(app)
+    mail.init_app(app)
+    CORS(app)
 
     if app_env in ['test', 'dev']:
-        if app_env == 'dev':
-            db.drop_database()
+        # if app_env == 'dev':
+        #     db.drop_database()
 
         connect(
             app.config['DB_NAME'],

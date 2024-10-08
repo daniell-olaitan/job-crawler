@@ -2,67 +2,23 @@
 """
 Module for user model
 """
-from pydantic import (
-    BaseModel,
-    EmailStr,
-    Field
-)
-from typing import (
-    List,
-    Optional
-)
+from flask_login import UserMixin
+from typing import List
 from mongoengine import (
     Document,
     StringField,
     ListField,
     ReferenceField,
 )
-from datetime import datetime
 from app import app_bcrypt
+# from models.company import Company
 from models.parent_model import ParentModel
 
 
-# Pydantic model for validating input data
-class UserCreateSchema(BaseModel):
-    name: str = Field(..., min_length=2, max_length=100)
-    email: EmailStr
-    password: str = Field(..., min_length=6)
-    role: str = Field(..., regex="^(Job Seeker|Employer)$")
-    skills: Optional[List[str]] = []  # Only applicable to job seekers
-    profile_picture: Optional[str] = None
-    resume: Optional[str] = None
-    company_id: Optional[int] = None  # Only applicable to employers
-
-    class Config:
-        extra = 'forbid'
-
-
-# Partial update schema for updating user profiles
-class UserUpdateSchema(BaseModel):
-    name: Optional[str] = Field(None, min_length=2, max_length=100)
-    email: Optional[EmailStr]
-    password: Optional[str] = Field(None, min_length=6)
-    profile_picture: Optional[str]
-    resume: Optional[str]
-    skills: Optional[List[str]] = []
-    company_id: Optional[int]
-
-    class Config:
-        extra = 'forbid'
-
-
-class UserLoginSchema(BaseModel):
-    email: EmailStr
-    password: str = Field(..., min_length=8)
-
-    class Config:
-        extra = 'forbid'
-
-
-class User(ParentModel, Document):
+class User(UserMixin, ParentModel, Document):
     name = StringField(required=True, max_length=100)
     email = StringField(required=True, unique=True)
-    password = StringField(required=True)  # Store hashed passwords
+    password = StringField(required=True)
     role = StringField(required=True, choices=["Job Seeker", "Employer"])
     skills = ListField(StringField(), default=[])  # Only for Job Seekers
     profile_picture = StringField()  # URL to profile picture

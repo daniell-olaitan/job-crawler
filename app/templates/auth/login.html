@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Job Crawler{% endblock %}
+
+{% block content %}
+<form id="loginForm" class="form-gen"action="{{ url_for('auth.login') }}" method="post" novalidate>
+    {{ form.hidden_tag() }}
+
+    <h2 class="form-title">Login</h2>
+
+    <div class="form-group">
+        <label for="email">Email address</label>
+        {{ form.email(class_="form-input", id="email") }}
+        {% if form.email.errors %}
+            <div class="form-error">
+                {{ form.email.errors[0] }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        {{ form.password(class_="form-input", id="password") }}
+        {% if form.password.errors %}
+            <div class="form-error">
+                {{ form.password.errors[0] }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="remember">
+        {{ form.remember_me() }}
+        <label class="rem-label" for="remember_me">Remember Me</label>
+    </div>
+
+    <button type="submit" class="btn">{{ form.submit.label.text }}</button>
+
+    <div class="form-group text-center">
+        <a href="{{ url_for('auth.forgot_password') }}" class="forgot-password-link">Forgot Password?</a>
+    </div>
+</form>
+{% endblock %}

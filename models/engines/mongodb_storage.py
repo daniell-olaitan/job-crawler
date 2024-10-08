@@ -67,6 +67,8 @@ class MongoDBStorage:
         if doc:
             for key, val in kwargs.items():
                 setattr(doc, key, val)
+                if key == 'password':
+                    doc.pre_save()
 
             doc.updated_at = datetime.now()
             doc.save()

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Job Listings - Job Crawler{% endblock %}
+
+{% block content %}
+<div class="heading">
+  <h2 class="spec-title">Find Your Remote Jobs</h2>
+  <form id="searchForm" class="search-form">
+    <div class="search-filter">
+      <input type="text" id="search" class="search-input" placeholder="Search for remote jobs">
+        <div class="filter-container">
+          <p>Filters:</p>
+          <label>
+            <input type="checkbox" name="all" value="all">
+            All Job Types
+          </label>
+          <label>
+            <input type="checkbox" name="full-time" value="full-time">
+            Full-Time
+          </label>
+          <label>
+            <input type="checkbox" name="part-time" value="part-time">
+            Part-Time
+          </label>
+          <label>
+            <input type="checkbox" name="internship" value="internship">
+            Internship
+          </label>
+        </div>
+    </div>
+      <button  id="search-btn" class="search-btn">Search</button>
+  </form>
+</div>
+<div class="content-container">
+    <h2 class="head-title">Available Job Listings</h2>
+    <div class="job-listings">
+        {% for job in jobs %}
+        <div class="job-card">
+            <h3>{{ job.title }}</h3>
+            <p>{{ job.company }}</p>
+            <p>Location: {{ job.location }}</p>
+            <p>Type: {{ job.job_type }}</p>
+            <p>Posted: {{ job.posted_date }}</p>
+            <a href="{{ url_for('job_details', job_id=job.id) }}" class="btn job-detail-btn">View Details</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

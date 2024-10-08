@@ -12,10 +12,13 @@ class Config:
     DB_HOST = getenv('DB_HOST') or 'localhost'
     DB_PORT = getenv('DB_PORT') or 27017
     DB_NAME = getenv('DB_NAME') or 'job_crawler_db'
-    JWT_SECRET_KEY = getenv('JWT_SECRET_KEY')
-    JWT_BLACKLIST_ENABLED = True
-    JWT_BLACKLIST_TOKEN_CHECKS = ['access']
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=5)
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = getenv('MAIL_USERNAME')
+    MAIL_PASSWORD = getenv('MAIL_PASSWORD')
+    MAIL_SENDER = getenv('MAIL_SENDER')
+    SECURITY_PASSWORD_SALT = getenv('SECURITY_PASSWORD_SALT')
 
 
 class TestConfig(Config):
