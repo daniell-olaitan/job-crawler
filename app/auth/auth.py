@@ -12,7 +12,15 @@ from app import (
 from flask import render_template
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
-from flask import current_app
+from flask import (
+    current_app,
+    flash,
+    redirect,
+    url_for
+)
+from flask_login import current_user
+from functools import wraps
+from flask.typing import ResponseReturnValue
 from mongoengine import Document
 
 ModelType = t.TypeVar('ModelType')
@@ -43,7 +51,7 @@ class Auth:
             return None
         raise ValueError('Email is not registered')
 
-    def register_user(self, **kwargs: t.Mapping) -> None:
+    def register_user(self, **kwargs: t.Mapping) -> ModelType:
         """
         Create and save a new user
         """
@@ -51,7 +59,21 @@ class Auth:
         if user:
             raise ValueError(f"User {kwargs['email']} already exists")
 
-        _ = db.insert(User, **kwargs)
+        return db.insert(User, **kwargs)
+
+    def role_required(self, role: str) -> t.Callable:
+        """
+        Decorate a view function to require a role
+        """
+        def decorator(f: t.Callable) -> t.Callable:
+            @wraps(f)
+            def decorated_function(*args: t.Tuple, **kwargs: t.Mapping) -> ResponseReturnValue:
+                if current_user.role != role:
+                    flash("You don't have the permission to access the requested resource", 'error')
+                    return redirect(url_for('user_views.dashboard'))
+                return f(*args, **kwargs)
+            return decorated_function
+        return decorator
 
     def send_reset_link(self, user: t.Type[Document]) -> None:
         """

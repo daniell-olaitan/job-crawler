@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Profile | Job Crawler{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h2 class="spec-title">{{ current_user.name }}'s Profile</h2>
+    </div>
+
+    <div class="profile-content">
+        <!-- Profile Picture -->
+
+        <div class="profile-picture">
+            {% if current_user.profile_picture %}
+                <img src="{{ current_user.profile_picture }}" alt="Profile Picture">
+            {% else %}
+                <img src="{{ url_for('static', filename='images/default.jpeg') }}" alt="Default Profile Picture">
+            {% endif %}
+        </div>
+
+        <!-- Personal Information -->
+        <div class="right">
+            <div class="profile-info">
+                <p class="details"><strong>Name:</strong> {{ current_user.name }}</p>
+                <p class="details"><strong>Email:</strong> {{ current_user.email }}</p>
+                <p class="details"><strong>Role:</strong> {{ current_user.role }}</p>
+                {% if current_user.about %}
+                    <p class="details"><strong>About:</strong> {{ current_user.about }}</p>
+                {% endif %}
+                {% if current_user.location %}
+                    <p class="details"><strong>Location:</strong> {{ current_user.about }}</p>
+                {% endif %}
+                {% if current_user.website %}
+                    <p><strong>Website:</strong> <a href="{{ current_user.website }}" target="_blank">{{ current_user.website }}</a></p>
+                {% endif %}
+                {% if current_user.role == 'Job Seeker' %}
+                    <!-- Job Seeker Details -->
+                    <p class="details"><strong>Resume:</strong>
+                        {% if current_user.resume %}
+                            <a href="{{ current_user.resume }}" target="_blank">View Resume</a>
+                        {% else %}
+                            Not uploaded
+                        {% endif %}
+                    </p>
+                    <div class="details">
+                        <p><strong>Skills:</strong> {{ current_user.skills | join(', ') }}</p>
+                    </div>
+                {% elif current_user.role == 'Company' %}
+                    {% if current_user.industry %}
+                        <p><strong>Industry:</strong> {{ current_user.company.industry }}</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <!-- Edit Profile Button -->
+            <div class="profile-actions">
+                <a href="{{ url_for('user_views.edit_profile') }}">Edit Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

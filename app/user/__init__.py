@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from flask import Blueprint
 
-app_views = Blueprint('app_views', __name__)
+user_views = Blueprint('user_views', __name__)
 
-from app.app_views.app_views import *
+from app.user.user_views import *

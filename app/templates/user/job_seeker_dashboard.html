@@ -4,13 +4,16 @@
 
 {% block content %}
     <div class="content-container">
-        <h2>Job Seeker Dashboard</h2>
+        <h2 class="spec-title">Dashboard</h2>
 
-        <!-- Section for Managing Job Applications -->
         <div class="dashboard-section">
-            <h3>Your Job Applications</h3>
+            <div class="table-head">
+                <h3>Your Job Applications</h3>
+                <div class="saved-jobs-btn">
+                    <a href="{{ url_for('job_views.view_saved_jobs') }}" class="btn">View Saved Jobs</a>
+                </div>
+            </div>
 
-            <!-- Table to display job applications -->
             <table class="job-table">
                 <thead>
                     <tr>
@@ -24,19 +27,19 @@
                 <tbody>
                     {% for application in applications %}
                     <tr>
-                        <td>{{ application.job_title }}</td>
-                        <td>{{ application.company_name }}</td>
-                        <td>{{ application.date_applied.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ application.job.title }}</td>
+                        <td>{{ application.job.company.user.name }}</td>
+                        <td>{{ application.created_at.strftime('%Y-%m-%d') }}</td>
                         <td>{{ application.status }}</td>
                         <td>
                             <!-- View Job Button -->
-                            <a href="{{ url_for('job.view', job_id=application.job_id) }}" class="btn-table">View Job</a>
+                            <a href="{{ url_for('job_views.view_job_details', job_id=application.job.id) }}" class="btn-table">View Job</a>
 
                             <!-- Withdraw Application Button -->
-                            <a href="{{ url_for('application.withdraw', app_id=application.id) }}" class="btn-table withdraw-btn">Withdraw</a>
+                            <a href="{{ url_for('job_views.cancel_job_application', job_id=application.job.id) }}" class="btn-table withdraw-btn">Withdraw</a>
 
                             <!-- Update Documents Button -->
-                            <a href="{{ url_for('application.update_docs', app_id=application.id) }}" class="btn-table">Update Docs</a>
+                            <a href="{{ url_for('job_views.update_job_application', job_id=application.job.id) }}" class="btn-table">Update Docs</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -45,7 +48,7 @@
 
             <!-- Message if no applications are found -->
             {% if applications|length == 0 %}
-                <p>You have not applied for any jobs yet.</p>
+                <p class="nil">You have not applied for any jobs yet.</p>
             {% endif %}
         </div>
     </div>

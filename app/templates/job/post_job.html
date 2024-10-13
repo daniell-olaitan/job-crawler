@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Post a Job - Job Crawler{% endblock %}
+
+{% block content %}
+    <div class="content-container">
+        <h2 class="form-title">Post a Job</h2>
+        <form id="postJobForm" class="form-gen" action="{{ url_for('job_views.post_job') }}" method="post" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="title">Job Title</label>
+                {{ form.title(class="form-input") }}
+                {% if form.title.errors %}
+                    <div class="form-error">
+                        {{ form.title.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="description">Job Description</label>
+                {{ form.description(class="form-input", rows="5") }}
+                {% if form.description.errors %}
+                    <div class="form-error">
+                        {{ form.description.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <!-- <label for="skills">Skills Required</label> -->
+                {{ form.skills(class="list-group") }}
+                <button type="button" class="btn" id="add-skill">Add Skill</button>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location</label>
+                {{ form.location(class="form-input") }}
+                {% if form.location.errors %}
+                    <div class="form-error">
+                        {{ form.location.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="salary">Salary</label>
+                {{ form.salary(class="form-input", placeholder="e.g. $1,000 - $2000") }}
+                {% if form.salary.errors %}
+                    <div class="form-error">
+                        {{ form.salary.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="job_type">Job Type</label>
+                {{ form.job_type(class="form-input") }}
+                {% if form.job_type.errors %}
+                    <div class="form-error">
+                        {{ form.job_type.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn">Post Job</button>
+        </form>
+    </div>
+
+    <script>
+        function removeField(fieldId) {
+            const fieldToRemove = document.getElementById(fieldId);
+            if (fieldToRemove) {
+                fieldToRemove.remove();
+            }
+        }
+
+        window.onload = function() {
+            let addSkillFieldBtn = document.getElementById('add-skill');
+
+            addSkillFieldBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                let allSkillsFieldWrapper = document.getElementById('skills');
+                let allSkillsField = allSkillsFieldWrapper.getElementsByTagName('input');
+
+                let skillInputIds = []
+                for(let i = 0; i < allSkillsField.length; i++) {
+                    skillInputIds.push(parseInt(allSkillsField[i].name.split('-')[1]));
+                }
+
+                let newFieldName = `skills-${Math.max(...skillInputIds) + 1}`;
+
+                allSkillsFieldWrapper.insertAdjacentHTML(
+                    'beforeend',
+                    `<li class="list-group-item" id="li-${newFieldName}">
+                        <input id="${newFieldName}" class="form-input" name="${newFieldName}" type="text" value="">
+                        <button class="close-btn" type="button" onclick="removeField('li-${newFieldName}')">X</button>
+                    </li>`
+                );
+
+            });
+        }
+    </script>
+{% endblock %}

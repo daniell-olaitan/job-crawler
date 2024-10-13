@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Employer Dashboard - Job Crawler{% endblock %}
+
+{% block content %}
+    <div class="content-container">
+        <h2 class="spec-title">Dashboard</h2>
+        <div class="dashboard-section">
+            <div class="table-head">
+                <h3>Your Job Postings</h3>
+                <div class="post-job-btn">
+                    <a href="{{ url_for('job_views.post_job') }}" class="btn">Post New Job</a>
+                </div>
+            </div>
+            <table class="job-table">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Date Posted</th>
+                        <th>Applications</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs %}
+                    <tr>
+                        <td>{{ job.title }}</td>
+                        <td>{{ job.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ job.applications_count }}</td>
+                        <td class="actions">
+                            <a href="{{ url_for('job_views.edit_job', job_id=job.id) }}" class="btn-table">Edit</a>
+                            <a href="{{ url_for('job_views.view_applications', job_id=job.id) }}" class="btn-table">View Applications</a>
+                            <a href="{{ url_for('job_views.delete_job', job_id=job.id) }}" class="btn-table btn-del">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if jobs|length == 0 %}
+                <p class="nil">You have not posted any jobs yet.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

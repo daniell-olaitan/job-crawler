@@ -75,12 +75,23 @@ class MongoDBStorage:
 
         return self.find(collection, id=id)
 
+    def add_relationship(self, doc: Document, field: str, value: t.Any) -> Document:
+        rel = getattr(doc, field)
+        rel.append(value)
+        doc.save()
+
+    def remove_relationship(self, doc: Document, field: str, value: t.Any) -> Document:
+        rel = getattr(doc, field)
+        rel.remove(value)
+        doc.save()
+
     def delete(self, collection: t.Type[Document], id: str) -> None:
         """
         Delete a document from the collection
         """
         doc = self.find(collection, id=id)
-        doc.delete()
+        if doc:
+            doc.delete()
 
     def drop_database(self):
         connect(self.db_name, host=self.db_host, port=self.db_port)

@@ -33,8 +33,8 @@ class JobSeekerRegistrationForm(FlaskForm):
     )
 
 
-class EmployerRegistrationForm(FlaskForm):
-    name = StringField('Full Name', validators=[DataRequired()])
+class CompanyRegistrationForm(FlaskForm):
+    name = StringField('Company Name', validators=[DataRequired()])
     email = StringField('Email Address', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     confirm_password = PasswordField(
@@ -42,7 +42,6 @@ class EmployerRegistrationForm(FlaskForm):
         validators=[DataRequired(), EqualTo('password', message='Passwords must match')]
     )
 
-    company_name = StringField('Company Name', validators=[DataRequired()])
     submit = SubmitField('Register')
 
 

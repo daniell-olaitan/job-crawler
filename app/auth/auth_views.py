@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 from app.auth import auth
 from models import db
-from models.company import Company
 from models.user import User
+from models.company import Company
+from models.profile import Profile
 from flask.typing import ResponseReturnValue
 from app.auth.auth_forms import (
     LoginForm,
-    EmployerRegistrationForm,
+    CompanyRegistrationForm,
     JobSeekerRegistrationForm,
     ForgotPasswordForm,
     ResetPasswordForm
@@ -37,6 +38,7 @@ def register_job_seeker() -> ResponseReturnValue:
     if current_user.is_authenticated:
         flash('You are already logged in', 'success')
         return redirect(url_for('home'))
+
     form = JobSeekerRegistrationForm()
     if form.validate_on_submit():
         user_details = request.form.to_dict()
@@ -44,7 +46,8 @@ def register_job_seeker() -> ResponseReturnValue:
         del user_details['confirm_password']
         user_details.update(role='Job Seeker')
         try:
-            user_auth.register_user(**user_details)
+            user = user_auth.register_user(**user_details)
+            _ = db.insert(Profile, user=user)
             flash('Registration successful, Please proceed to log in', 'success')
 
             return redirect(url_for('auth.login'))
@@ -53,33 +56,31 @@ def register_job_seeker() -> ResponseReturnValue:
     return render_template('auth/register_job_seeker.html', form=form)
 
 
-@auth.route('/register-employer', methods=['GET', 'POST'])
-def register_employer() -> ResponseReturnValue:
+@auth.route('/register-company', methods=['GET', 'POST'])
+def register_company() -> ResponseReturnValue:
     """
-    Register a new employer user
+    Register a new company
     """
     if current_user.is_authenticated:
         flash('You are already logged in', 'success')
-        return redirect(url_for('home'))
-    form = EmployerRegistrationForm()
+        return redirect(url_for('dashboard'))
+
+    form = CompanyRegistrationForm()
     if form.validate_on_submit():
-        user_details = request.form.to_dict()
-        del user_details['csrf_token']
-        del user_details['confirm_password']
-        user_details.update(role='Employer')
-
-        company_name = user_details.pop('company_name')
-        company = db.insert(Company, name=company_name)
-
-        user_details.update(company=company)
+        company_details = request.form.to_dict()
+        del company_details['csrf_token']
+        del company_details['confirm_password']
+        company_details.update(role='Company')
         try:
-            user_auth.register_user(**user_details)
-            flash('Registration successful, please proceed to log in', 'success')
+            user = user_auth.register_user(**company_details)
+            _ = db.insert(Company, user=user)
+            flash('Registration successful, Please proceed to log in', 'success')
 
             return redirect(url_for('auth.login'))
         except ValueError as err:
             flash(str(err), 'error')
-    return render_template('auth/register_job_seeker.html', form=form)
+
+    return render_template('auth/register_company.html', form=form)
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -90,6 +91,7 @@ def login() -> ResponseReturnValue:
     if current_user.is_authenticated:
         flash('You are already logged in', 'success')
         return redirect(url_for('home'))
+
     form = LoginForm()
     if form.validate_on_submit():
         login_details = request.form.to_dict()
@@ -99,7 +101,7 @@ def login() -> ResponseReturnValue:
             if user:
                 login_user(user, remember=form.remember_me.data)
                 flash('You are signed in', 'success')
-                return redirect(url_for('home'))
+                return redirect(url_for('user_views.dashboard'))
 
             flash('Incorrect password', 'error')
         except ValueError as err:

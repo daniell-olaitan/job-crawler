@@ -37,11 +37,11 @@
         {% for job in jobs %}
         <div class="job-card">
             <h3>{{ job.title }}</h3>
-            <p>{{ job.company }}</p>
-            <p>Location: {{ job.location }}</p>
-            <p>Type: {{ job.job_type }}</p>
-            <p>Posted: {{ job.posted_date }}</p>
-            <a href="{{ url_for('job_details', job_id=job.id) }}" class="btn job-detail-btn">View Details</a>
+            <p><strong>Company:</strong> {{ job.company.user.name }}</p>
+            <p><strong>Location:</strong> {{ job.location }}</p>
+            <p><strong>Type:</strong> {{ job.job_type }}</p>
+            <p><strong>Posted:</strong> {{ job.created_at.strftime('%Y-%m-%d') }}</p>
+            <a href="{{ url_for('job_views.view_job_details', job_id=job.id) }}" class="btn job-detail-btn">View Details</a>
         </div>
         {% endfor %}
     </div>
