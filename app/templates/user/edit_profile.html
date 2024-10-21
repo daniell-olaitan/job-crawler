@@ -6,7 +6,7 @@
 <div class="edit-profile-container">
     <h2>Edit Profile</h2>
 
-    <form action="{{ url_for('user_views.edit_profile') }}" method="POST" enctype="multipart/form-data" class="edit-profile-form" novalidate>
+    <form action="{{ url_for('user_views.edit_profile') }}" method="POST" enctype="multipart/form-data" class="form-gen" novalidate>
         {{ form.hidden_tag() }}
 
             <div class="form-group">

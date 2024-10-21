@@ -3,16 +3,14 @@
 Module for job application model
 """
 import os
+from utils import delete_file
 from models.profile import Profile
 from models.job_listing import JobListing
 from models.parent_model import ParentModel
-from typing import List
 from mongoengine import (
     Document,
     StringField,
-    ListField,
     ReferenceField,
-    IntField,
     signals,
     CASCADE
 )
@@ -24,8 +22,8 @@ class JobApplication(ParentModel, Document):
     resume = StringField()
     status = StringField(
         required=True,
-        choices=["Applied", "Interview Scheduled", "Offer Received", "Rejected"],
-        default="Applied"
+        choices=['submitted', 'under_review', 'interview_scheduled', 'rejected', 'offer_received'],
+        default='submitted'
     )
 
     meta = {
@@ -33,12 +31,9 @@ class JobApplication(ParentModel, Document):
     }
 
 
-# Function to delete the resume file when a application is withdrawn is deleted
+# Delete the resume file when the user is deleted
 def delete_resume_file(sender, document, **kwargs):
-    if document.resume:
-        file_path = os.path.join(os.getenv('RESUME_UPLOAD_FOLDER'), document.resume)
-        if os.path.exists(file_path):
-            os.remove(file_path)
+    delete_file(document, os.getenv('RESUME_UPLOAD_FOLDER'), 'resume')
 
 
 # Connect the function to the 'pre_delete' signal

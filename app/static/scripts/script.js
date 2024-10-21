@@ -17,35 +17,3 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentYear = new Date().getFullYear();
     yearSpan.textContent = currentYear;
 });
-
-document.addEventListener("DOMContentLoaded", function() {
-  const searchBtn = document.getElementById('search-btn');
-
-  searchBtn.addEventListener('click', function() {
-      const searchQuery = document.getElementById('search').value;
-      const jobType = document.getElementById('job-type').value;
-
-      // Build the search URL
-      let url = `/search_results?query=${searchQuery}`;
-      if (jobType) {
-          url += `&job_type=${jobType}`;
-      }
-      window.location.href = url;
-  });
-});
-
-document.addEventListener("DOMContentLoaded", function() {
-  const jobApplicationForm = document.getElementById('jobApplicationForm');
-
-  if (jobApplicationForm) {
-      jobApplicationForm.addEventListener('submit', function(event) {
-          const resumeInput = document.getElementById('resume');
-          const file = resumeInput.files[0];
-
-          if (!file || file.type !== 'application/pdf') {
-              event.preventDefault();
-              alert('Please upload a PDF resume.');
-          }
-      });
-  }
-});

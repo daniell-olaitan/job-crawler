@@ -10,7 +10,8 @@ from app.auth.auth_forms import (
     CompanyRegistrationForm,
     JobSeekerRegistrationForm,
     ForgotPasswordForm,
-    ResetPasswordForm
+    ResetPasswordForm,
+    ChangePasswordForm
 )
 from app.auth.auth import Auth
 from flask import (
@@ -36,8 +37,10 @@ def register_job_seeker() -> ResponseReturnValue:
     Register a new job seeker user
     """
     if current_user.is_authenticated:
+        referer = request.headers.get('Referer')
         flash('You are already logged in', 'success')
-        return redirect(url_for('home'))
+
+        return redirect(referer or url_for('home'))
 
     form = JobSeekerRegistrationForm()
     if form.validate_on_submit():
@@ -62,8 +65,10 @@ def register_company() -> ResponseReturnValue:
     Register a new company
     """
     if current_user.is_authenticated:
+        referer = request.headers.get('Referer')
         flash('You are already logged in', 'success')
-        return redirect(url_for('dashboard'))
+
+        return redirect(referer or url_for('home'))
 
     form = CompanyRegistrationForm()
     if form.validate_on_submit():
@@ -89,8 +94,10 @@ def login() -> ResponseReturnValue:
     Log in a user
     """
     if current_user.is_authenticated:
+        referer = request.headers.get('Referer')
         flash('You are already logged in', 'success')
-        return redirect(url_for('home'))
+
+        return redirect(referer or url_for('home'))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -101,7 +108,7 @@ def login() -> ResponseReturnValue:
             if user:
                 login_user(user, remember=form.remember_me.data)
                 flash('You are signed in', 'success')
-                return redirect(url_for('user_views.dashboard'))
+                return redirect(url_for('home'))
 
             flash('Incorrect password', 'error')
         except ValueError as err:
@@ -112,8 +119,11 @@ def login() -> ResponseReturnValue:
 @auth.route('forgot-password', methods=['GET', 'POST'])
 def forgot_password() -> ResponseReturnValue:
     if current_user.is_authenticated:
+        referer = request.headers.get('Referer')
         flash('You are already logged in', 'success')
-        return redirect(url_for('home'))
+
+        return redirect(referer or url_for('home'))
+
     form = ForgotPasswordForm()
     if form.validate_on_submit():
         email = request.form['email']
@@ -133,8 +143,11 @@ def forgot_password() -> ResponseReturnValue:
 @auth.route('/reset-password/<string:token>', methods=['GET', 'POST'])
 def reset_password(token: str) -> ResponseReturnValue:
     if current_user.is_authenticated:
+        referer = request.headers.get('Referer')
         flash('You are already logged in', 'success')
-        return redirect(url_for('home'))
+
+        return redirect(referer or url_for('home'))
+
     user_id = user_auth.verify_reset_token(token)
     if not user_id:
         flash('The reset link is invalid or has expired.', 'warning')
@@ -150,7 +163,21 @@ def reset_password(token: str) -> ResponseReturnValue:
     return render_template('auth/reset_password.html', form=form, token=token)
 
 
-@auth.route('/logout')
+@auth.route('/change-password', methods=['GET', 'POST'])
+@user_auth.login_required()
+def change_password() -> ResponseReturnValue:
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        if current_user.check_password(form.current_password.data):
+            db.update(User, id=current_user.id, password=form.new_password.data)
+            flash('Your password has been changed', 'success')
+
+            return redirect(url_for('user_views.profile', user_id=current_user.id))
+
+    return render_template('auth/change_password.html', form=form)
+
+
+@auth.route('/logout', methods=['GET'])
 @login_required
 def logout() -> ResponseReturnValue:
     """

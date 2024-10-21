@@ -5,57 +5,58 @@
 {% block content %}
 <div class="profile-container">
     <div class="profile-header">
-        <h2 class="spec-title">{{ current_user.name }}'s Profile</h2>
+        <h2 class="spec-title">{{ user.name }}'s Profile</h2>
     </div>
 
     <div class="profile-content">
         <!-- Profile Picture -->
 
         <div class="profile-picture">
-            {% if current_user.profile_picture %}
-                <img src="{{ current_user.profile_picture }}" alt="Profile Picture">
+            {% if user.profile_picture %}
+                <img src="{{ url_for('static', filename='images/' ~ user.profile_picture) }}" alt="Profile Picture">
             {% else %}
-                <img src="{{ url_for('static', filename='images/default.jpeg') }}" alt="Default Profile Picture">
+                <img src="{{ url_for('static', filename='images/default.png') }}" alt="Default Profile Picture">
             {% endif %}
         </div>
 
         <!-- Personal Information -->
         <div class="right">
             <div class="profile-info">
-                <p class="details"><strong>Name:</strong> {{ current_user.name }}</p>
-                <p class="details"><strong>Email:</strong> {{ current_user.email }}</p>
-                <p class="details"><strong>Role:</strong> {{ current_user.role }}</p>
-                {% if current_user.about %}
-                    <p class="details"><strong>About:</strong> {{ current_user.about }}</p>
-                {% endif %}
-                {% if current_user.location %}
-                    <p class="details"><strong>Location:</strong> {{ current_user.about }}</p>
-                {% endif %}
-                {% if current_user.website %}
-                    <p><strong>Website:</strong> <a href="{{ current_user.website }}" target="_blank">{{ current_user.website }}</a></p>
-                {% endif %}
-                {% if current_user.role == 'Job Seeker' %}
+                <p class="details"><strong>Name:</strong> {{ user.name }}</p>
+                <p class="details"><strong>Email:</strong> {{ user.email }}</p>
+                <p class="details"><strong>Role:</strong> {{ user.role }}</p>
+                <p class="details"><strong>About:</strong> {{ user.about }}</p>
+                <p class="details"><strong>Location:</strong> {{ user.location }}</p>
+                <p class="details"><strong>Website:</strong> <a class="link" href="{{ user.website }}" target="_blank">{{ user.website }}</a></p>
+
+                {% if user.role == 'Job Seeker' %}
                     <!-- Job Seeker Details -->
                     <p class="details"><strong>Resume:</strong>
-                        {% if current_user.resume %}
-                            <a href="{{ current_user.resume }}" target="_blank">View Resume</a>
+                        {% if user.get_profile().resume %}
+                            <a class="link" href="{{ url_for('static', filename='files/resume/' ~ user.get_profile().resume) }}" target="_blank">View Resume</a>
                         {% else %}
                             Not uploaded
                         {% endif %}
                     </p>
-                    <div class="details">
-                        <p><strong>Skills:</strong> {{ current_user.skills | join(', ') }}</p>
-                    </div>
-                {% elif current_user.role == 'Company' %}
-                    {% if current_user.industry %}
-                        <p><strong>Industry:</strong> {{ current_user.company.industry }}</p>
-                    {% endif %}
+                    <p class="details"><strong>Skills:</strong> {{ user.get_profile().skills | join(', ') }}</p>
+                {% elif user.role == 'Company' %}
+                    <p class="details"><strong>Industry:</strong> {{ user.get_company().industry }}</p>
                 {% endif %}
             </div>
             <!-- Edit Profile Button -->
+             {% if current_user.role != 'Admin' and current_user.role != 'Super Admin'%}
             <div class="profile-actions">
-                <a href="{{ url_for('user_views.edit_profile') }}">Edit Profile</a>
+                <a href="{{ url_for('user_views.edit_profile') }}" class="btn-green">Edit Profile</a>
+                <a href="{{ url_for('auth.change_password') }}" class="btn-warning">Change Password</a>
             </div>
+            {% elif current_user.role == 'Admin' or current_user.role == 'Super Admin' %}
+                {% if current_user.id == user.id %}
+                    <div class="profile-actions">
+                        <a href="{{ url_for('user_views.edit_profile') }}" class="btn-green">Edit Profile</a>
+                        <a href="{{ url_for('auth.change_password') }}" class="btn-warning">Change Password</a>
+                    </div>
+                {% endif %}
+            {% endif %}
         </div>
     </div>
 </div>

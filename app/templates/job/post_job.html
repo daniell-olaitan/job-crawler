@@ -29,9 +29,13 @@
             </div>
 
             <div class="form-group">
-                <!-- <label for="skills">Skills Required</label> -->
-                {{ form.skills(class="list-group") }}
-                <button type="button" class="btn" id="add-skill">Add Skill</button>
+                <label for="skills">Skills</label>
+                {{ form.skills(class="form-input") }}
+                {% if form.skills.errors %}
+                    <div class="form-error">
+                        {{ form.skills.errors[0] }}
+                    </div>
+                {% endif %}
             </div>
 
             <div class="form-group">
@@ -67,40 +71,4 @@
             <button type="submit" class="btn">Post Job</button>
         </form>
     </div>
-
-    <script>
-        function removeField(fieldId) {
-            const fieldToRemove = document.getElementById(fieldId);
-            if (fieldToRemove) {
-                fieldToRemove.remove();
-            }
-        }
-
-        window.onload = function() {
-            let addSkillFieldBtn = document.getElementById('add-skill');
-
-            addSkillFieldBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                let allSkillsFieldWrapper = document.getElementById('skills');
-                let allSkillsField = allSkillsFieldWrapper.getElementsByTagName('input');
-
-                let skillInputIds = []
-                for(let i = 0; i < allSkillsField.length; i++) {
-                    skillInputIds.push(parseInt(allSkillsField[i].name.split('-')[1]));
-                }
-
-                let newFieldName = `skills-${Math.max(...skillInputIds) + 1}`;
-
-                allSkillsFieldWrapper.insertAdjacentHTML(
-                    'beforeend',
-                    `<li class="list-group-item" id="li-${newFieldName}">
-                        <input id="${newFieldName}" class="form-input" name="${newFieldName}" type="text" value="">
-                        <button class="close-btn" type="button" onclick="removeField('li-${newFieldName}')">X</button>
-                    </li>`
-                );
-
-            });
-        }
-    </script>
 {% endblock %}

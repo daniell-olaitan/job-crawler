@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Registration | Job Crawler{% endblock %}
+
+{% block content %}
+<form id="adminRegisterForm" class="form-gen" action="{{ url_for('user_views.create_admin') }}" method="post" novalidate>
+    {{ form.hidden_tag() }}
+
+    <h2 class="form-title">Create New Admin</h2>
+    <div class="form-group">
+        <label for="name">Full Name</label>
+        {{ form.name(class="form-input") }}
+        {% if form.name.errors %}
+            <div class="form-error">
+                {{ form.name.errors[0] }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email Address</label>
+        {{ form.email(class="form-input") }}
+        {% if form.email.errors %}
+            <div class="form-error">
+                {{ form.email.errors[0] }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        {{ form.password(class="form-input") }}
+        {% if form.password.errors %}
+            <div class="form-error">
+                {{ form.password.errors[0] }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="confirm_password">Confirm Password</label>
+        {{ form.confirm_password(class="form-input") }}
+        {% if form.confirm_password.errors %}
+            <div class="form-error">
+                {{ form.confirm_password.errors[0] }}
+            </div>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="btn">Create</button>
+</form>
+{% endblock %}

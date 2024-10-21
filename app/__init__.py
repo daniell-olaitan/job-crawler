@@ -5,8 +5,8 @@ Module to define the function to create the application instance
 from dotenv import load_dotenv
 load_dotenv()
 
-from models import db
 import os
+from models import db
 from config import config
 from flask import Flask
 from flask_cors import CORS

@@ -3,7 +3,6 @@
 Module for the app configurations
 """
 from os import getenv
-from datetime import timedelta
 from urllib.parse import quote_plus
 
 

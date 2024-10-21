@@ -5,35 +5,17 @@
 {% block content %}
 <div class="heading">
   <h2 class="spec-title">Find Your Remote Jobs</h2>
-  <form id="searchForm" class="search-form">
+  <form id="searchForm" action="{{ url_for('search') }}" class="search-form" method="get" novalidate>
     <div class="search-filter">
-      <input type="text" id="search" class="search-input" placeholder="Search for remote jobs">
-        <div class="filter-container">
-          <p>Filters:</p>
-          <label>
-            <input type="checkbox" name="all" value="all">
-            All Job Types
-          </label>
-          <label>
-            <input type="checkbox" name="full-time" value="full-time">
-            Full-Time
-          </label>
-          <label>
-            <input type="checkbox" name="part-time" value="part-time">
-            Part-Time
-          </label>
-          <label>
-            <input type="checkbox" name="internship" value="internship">
-            Internship
-          </label>
-        </div>
+      <input type="text" name="q" id="search" class="search-input" placeholder="Search for remote jobs">
     </div>
-      <button  id="search-btn" class="search-btn">Search</button>
+      <button type="submit" id="search-btn" class="search-btn">Search</button>
   </form>
 </div>
 <div class="content-container">
-    <h2 class="head-title">Available Job Listings</h2>
+    <h2>Available Job Listings</h2>
     <div class="job-listings">
+      {% if jobs | length > 0 %}
         {% for job in jobs %}
         <div class="job-card">
             <h3>{{ job.title }}</h3>
@@ -44,6 +26,9 @@
             <a href="{{ url_for('job_views.view_job_details', job_id=job.id) }}" class="btn job-detail-btn">View Details</a>
         </div>
         {% endfor %}
+      {% else %}
+        <p>No available job.</p>
+      {% endif %}
     </div>
 </div>
 {% endblock %}

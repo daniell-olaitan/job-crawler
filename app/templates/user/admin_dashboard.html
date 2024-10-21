@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | Job Crawler{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <ul>
+            {% if current_user.role == 'Super Admin' %}
+                <li><a href="{{ url_for('user_views.create_admin') }}">Create Admin</a></li>
+            {% endif %}
+            <li><a href="{{ url_for('user_views.manage_users') }}">User Management</a></li>
+            <li><a href="{{ url_for('user_views.manage_jobs') }}">Job Management</a></li>
+            <li><a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="dashboard-content">
+        <h2>Welcome, Admin</h2>
+        <div class="stats-cards">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <p>{{ total_users }}</p>
+                {% if total_admins %}
+                    <small>Admins: {{ total_admins }}</small><br>
+                {% endif %}
+                <small>Job Seekers: {{ total_job_seekers }}</small><br>
+                <small>Companies: {{ total_companies }}</small>
+            </div>
+            <div class="stat-card">
+                <h3>Total Jobs</h3>
+                <p>{{ total_jobs }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

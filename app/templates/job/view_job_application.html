@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Job Applications | Job Crawler{% endblock %}
+
+{% block content %}
+    <div class="content-container">
+        <h2>Job Applications for "{{ job.title }}"</h2>
+        <table class="job-table">
+            <thead>
+                <tr>
+                    <th>Applicant Name</th>
+                    <th>Resume</th>
+                    <th>Cover Letter</th>
+                    <th>Date Applied</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for application in applications %}
+                <tr>
+                    <td>{{ application.user.user.name }}</td>
+                    <td><a
+                        class="link"
+                            href="{{ url_for('static', filename='files/resume/' ~ application.resume) }}" target="_blank"
+                        >
+                            View Resume
+                        </a>
+                    </td>
+                    <td>{{ application.cover_letter | truncate(50) }}</td>
+                    <td>{{ application.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        <a
+                            class="link"
+                            href="{{ url_for('job_views.view_application_details', application_id=application.id) }}"
+                        >
+                            Review
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

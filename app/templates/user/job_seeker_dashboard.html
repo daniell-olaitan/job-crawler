@@ -30,8 +30,20 @@
                         <td>{{ application.job.title }}</td>
                         <td>{{ application.job.company.user.name }}</td>
                         <td>{{ application.created_at.strftime('%Y-%m-%d') }}</td>
-                        <td>{{ application.status }}</td>
                         <td>
+                            {% if application.status == 'submitted' %}
+                                <span class="badge submitted">Submitted</span>
+                            {% elif application.status == 'under_review' %}
+                                <span class="badge review">Under Review</span>
+                            {% elif application.status == 'interview_scheduled' %}
+                                <span class="badge interview">Interview Scheduled</span>
+                            {% elif application.status == 'rejected' %}
+                                <span class="badge rejected">Rejected</span>
+                            {% else %}
+                                <span class="badge offer">Offer Received</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions">
                             <!-- View Job Button -->
                             <a href="{{ url_for('job_views.view_job_details', job_id=application.job.id) }}" class="btn-table">View Job</a>
 

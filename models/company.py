@@ -14,7 +14,7 @@ from mongoengine import (
 
 
 class Company(ParentModel, Document):
-    industry = StringField( max_length=100)
+    industry = StringField(max_length=100)
     user = ReferenceField(
         User,
         index=True,

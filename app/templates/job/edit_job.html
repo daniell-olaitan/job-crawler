@@ -29,9 +29,13 @@
             </div>
 
             <div class="form-group">
-                <!-- <label for="skills">Skills Required</label> -->
-                {{ form.skills(class="list-group") }}
-                <button type="button" class="btn" id="add-skill">Add Skill</button>
+                <label for="skills">Skills</label>
+                {{ form.skills(class="form-input") }}
+                {% if form.skills.errors %}
+                    <div class="form-error">
+                        {{ form.skills.errors[0] }}
+                    </div>
+                {% endif %}
             </div>
 
             <div class="form-group">

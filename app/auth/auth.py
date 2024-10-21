@@ -15,10 +15,12 @@ from itsdangerous import URLSafeTimedSerializer
 from flask import (
     current_app,
     flash,
-    redirect,
-    url_for
+    abort
 )
-from flask_login import current_user
+from flask_login import (
+    current_user,
+    login_required
+)
 from functools import wraps
 from flask.typing import ResponseReturnValue
 from mongoengine import Document
@@ -61,16 +63,33 @@ class Auth:
 
         return db.insert(User, **kwargs)
 
-    def role_required(self, role: str) -> t.Callable:
+    def role_required(self, *roles: tuple) -> t.Callable:
         """
         Decorate a view function to require a role
         """
         def decorator(f: t.Callable) -> t.Callable:
             @wraps(f)
             def decorated_function(*args: t.Tuple, **kwargs: t.Mapping) -> ResponseReturnValue:
-                if current_user.role != role:
-                    flash("You don't have the permission to access the requested resource", 'error')
-                    return redirect(url_for('user_views.dashboard'))
+                if current_user.role not in roles:
+                        flash("You don't have the permission to access the requested resource", 'error')
+                        abort(403)
+
+                return f(*args, **kwargs)
+            return decorated_function
+        return decorator
+
+    def login_required(self):
+        """
+        Decorator to check if the user is active and if the user is logged in
+        """
+        def decorator(f: t.Callable) -> t.Callable:
+            @login_required
+            @wraps(f)
+            def decorated_function(*args: t.Tuple, **kwargs: t.Mapping) -> ResponseReturnValue:
+                if current_user.status == 'inactive':
+                    flash('Your account is being suspended', 'error')
+                    abort(401)
+
                 return f(*args, **kwargs)
             return decorated_function
         return decorator
