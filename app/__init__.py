@@ -44,8 +44,8 @@ def create_app(app_env: str) -> Flask:
         os.makedirs(app.config['IMAGE_UPLOAD_FOLDER'])
 
     if app_env in ['test', 'dev']:
-        # if app_env == 'dev':
-        #     db.drop_database()
+        if app_env == 'dev':
+            db.drop_database()
 
         connect(
             app.config['DB_NAME'],
