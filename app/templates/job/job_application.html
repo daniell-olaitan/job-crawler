@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Apply for Job - Job Crawler{% endblock %}
+
+{% block content %}
+    <div class="content-container">
+        <h2>Apply for {{ job.title }}</h2>
+        <p class="job-details">Company: {{ job.company.user.name }} | Location: {{ job.location }} | Posted: {{ job.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+        <form id="jobApplicationForm" class="form-gen" action="{{ url_for('job_views.apply_for_job', job_id=job.id) }}" method="post" enctype="multipart/form-data" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="resume">{{ form.resume.label }}</label>
+                {{ form.resume(class="form-input", id="resume") }}
+                {% if form.resume.errors %}
+                    <div class="form-error">
+                        {{ form.resume.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="cover_letter">{{ form.cover_letter.label }}</label>
+                {{ form.cover_letter(class="form-input", id="cover_letter", rows="6", placeholder="Write your cover letter here...") }}
+                {% if form.cover_letter.errors %}
+                    <div class="form-error">
+                        {{ form.cover_letter.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn">Submit Application</button>
+        </form>
+    </div>
+{% endblock %}

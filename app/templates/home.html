@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Job Listings - Job Crawler{% endblock %}
+
+{% block content %}
+<div class="heading">
+  <h2 class="spec-title">Find Your Remote Jobs</h2>
+  <form id="searchForm" action="{{ url_for('search') }}" class="search-form" method="get" novalidate>
+    <div class="search-filter">
+      <input type="text" name="q" id="search" class="search-input" placeholder="Search for remote jobs">
+    </div>
+      <button type="submit" id="search-btn" class="search-btn">Search</button>
+  </form>
+</div>
+<div class="content-container">
+    <h2>Available Job Listings</h2>
+    <div class="job-listings">
+      {% if jobs | length > 0 %}
+        {% for job in jobs %}
+        <div class="job-card">
+            <h3>{{ job.title }}</h3>
+            <p><strong>Company:</strong> {{ job.company.user.name }}</p>
+            <p><strong>Location:</strong> {{ job.location }}</p>
+            <p><strong>Type:</strong> {{ job.job_type }}</p>
+            <p><strong>Posted:</strong> {{ job.created_at.strftime('%Y-%m-%d') }}</p>
+            <a href="{{ url_for('job_views.view_job_details', job_id=job.id) }}" class="btn job-detail-btn">View Details</a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p>No available job.</p>
+      {% endif %}
+    </div>
+</div>
+{% endblock %}

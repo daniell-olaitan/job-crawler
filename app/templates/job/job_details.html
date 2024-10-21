@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Job Details - Job Crawler{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h2 class="spec-title">{{ job.title }}</h2>
+    <div class="job-detail-info">
+        <p class="details"><strong>Company:</strong> {{ job.company.user.name }}</p>
+        <p class="details"><strong>Job Type:</strong> {{ job.job_type }}</p>
+        <p class="details"><strong>Location:</strong> {{ job.location }}</p>
+        <p class="details"><strong>Posted:</strong> {{ job.created_at.strftime('%Y-%m-%d') }}</p>
+        <p class="details"><strong>Salary:</strong> {{ job.salary }}</p>
+
+        <div class="details">
+            <p><strong>Job Description:</strong></p>
+            <p class="desc">{{ job.description }}</p>
+        </div>
+
+        <div class="details">
+            <p><strong>Required Skills:</strong></p>
+            <ol>
+                {% for skill in job.skills %}
+                    <li><p>{{ skill }}</p></li>
+                {% endfor %}
+            </ol>
+        </div>
+
+    </div>
+
+    {% if current_user.role != 'Company' and current_user.role != 'Admin' and current_user.role != 'Super Admin' %}
+        <div class="job-actions">
+            {% if current_user.role == 'Job Seeker' %}
+                {% if job in current_user.get_profile().saved_jobs %}
+                    <a href="{{ url_for('job_views.unsave_job', job_id=job.id) }}" style="background-color: #e74c3c;" class="save-btn">Unsave Job</a>
+                {% else %}
+                    <a href="{{ url_for('job_views.save_job', job_id=job.id) }}" class="save-btn">Save Job</a>
+                {% endif %}
+            {% endif %}
+            {% if job.source == 'Company' %}
+                {% if current_user.role == 'Job Seeker' %}
+                    {% if application %}
+                        {% if application.status != 'offer_received' and application.status != 'rejected' %}
+                            <a href="{{ url_for('job_views.cancel_job_application', job_id=job.id) }}" style="background-color: #e74c3c;" class="apply-btn">Cancel Application</a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{{ url_for('job_views.apply_for_job', job_id=job.id) }}" class="apply-btn">Apply Now</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('job_views.apply_for_job', job_id=job.id) }}" class="apply-btn">Apply Now</a>
+                {% endif %}
+            {% else %}
+                <a href="{{ job.application_url }}" class="apply-btn" target="_blank">Appl Now</a>
+            {% endif %}
+        </div>
+    {% endif %}
+    </div>
+{% endblock %}

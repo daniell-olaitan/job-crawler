@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Saved Jobs - Job Crawler{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h2>Your Saved Jobs</h2>
+    <div class="job-listings">
+        {% if current_user.get_profile().saved_jobs %}
+            {% for job in current_user.get_profile().saved_jobs %}
+            <div class="job-card">
+                <h3>{{ job.title }}</h3>
+                <p>{{ job.company }}</p>
+                <p>Location: {{ job.location }}</p>
+                <p>Type: {{ job.job_type }}</p>
+                <p>Posted: {{ job.posted_date }}</p>
+                <a href="{{ url_for('job_views.view_job_details', job_id=job.id) }}" class="btn job-detail-btn">View Details</a>
+            </div>
+            {% endfor %}
+        {% else %}
+        <p>No saved jobs yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

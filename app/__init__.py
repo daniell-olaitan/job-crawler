@@ -5,46 +5,53 @@ Module to define the function to create the application instance
 from dotenv import load_dotenv
 load_dotenv()
 
-from pymongo import MongoClient
+import os
+from models import db
 from config import config
 from flask import Flask
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager
 from mongoengine import connect
+from flask_login import LoginManager
+from flask_mail import Mail
 
 app_bcrypt = Bcrypt()
-jwt = JWTManager()
+login_manager = LoginManager()
+mail = Mail()
+login_manager.login_view = 'auth.login'
 
-def create_app(app_env: str = 'default') -> Flask:
+
+def create_app(app_env: str) -> Flask:
     app = Flask(__name__)
     app.url_map.strict_slashes = False
     app.config.from_object(config[app_env])
-    from app.v1.auth import auth
-    from app.v1.app_views import app_views
+    from app.auth import auth
+    from app.job import job_views
+    from app.user import user_views
 
     app.register_blueprint(auth)
-    app.register_blueprint(app_views)
+    app.register_blueprint(job_views)
+    app.register_blueprint(user_views)
+    mail.init_app(app)
     app_bcrypt.init_app(app)
-    jwt.init_app(app)
-    CORS(app, resources={
-        r'/v1*': {
-            'origins': '*'
-        }
-    })
+    login_manager.init_app(app)
+    CORS(app)
+
+    if not os.path.exists(app.config['RESUME_UPLOAD_FOLDER']):
+        os.makedirs(app.config['RESUME_UPLOAD_FOLDER'])
+
+    if not os.path.exists(app.config['IMAGE_UPLOAD_FOLDER']):
+        os.makedirs(app.config['IMAGE_UPLOAD_FOLDER'])
 
     if app_env in ['test', 'dev']:
-        DB_NAME = app.config['DB_NAME']
-        DB_HOST = app.config['DB_HOST']
-        DB_PORT = app.config['DB_PORT']
+        # if app_env == 'dev':
+        #     db.drop_database()
 
-        client = MongoClient(DB_HOST, DB_PORT)
-        db_list = client.list_database_names()
-
-        if DB_NAME in db_list:
-            client.drop_database(DB_NAME)
-
-        connect(DB_NAME, host=DB_HOST, port=DB_PORT)
+        connect(
+            app.config['DB_NAME'],
+            host=app.config['DB_HOST'],
+            port=app.config['DB_PORT']
+        )
     else:
         connect(host=app.config['MONGO_URI'])
 

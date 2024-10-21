@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Unautorized - Job Crawler{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="error-container">
+        <h2 class="spec-title">401 - Unauthorized</h2>
+        <p>Oops! You don't have the required authorization to access this page.</p>
+        <p><a href="{{ url_for('home') }}" class="btn">Go to Homepage</a></p>
+    </div>
+</div>
+{% endblock %}

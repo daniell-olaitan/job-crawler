@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Application Details | Job Crawler{% endblock %}
+
+{% block content %}
+<div class="content-container">
+  <h2 class="spec-title">Job Application from {{ application.user.user.name }}</h2>
+  <div class="application-details">
+    <p><strong>Date Applied:</strong> {{ application.created_at.strftime('%Y-%m-%d') }}</p>
+    <p>
+      <strong>Status:</strong>
+      {% if application.status == 'submitted' %}
+          <span class="badge submitted">Submitted</span>
+      {% elif application.status == 'under_review' %}
+          <span class="badge review">Under Review</span>
+      {% elif application.status == 'interview_scheduled' %}
+          <span class="badge interview">Interview Scheduled</span>
+      {% elif application.status == 'rejected' %}
+          <span class="badge rejected">Rejected</span>
+      {% elif application.status == 'offer_received' %}
+          <span class="badge offer">Offer Received</span>
+      {% endif %}
+    </p>
+
+    <div>
+      <p><strong>Cover Letter:</strong></p>
+      <p>{{ application.cover_letter }}</p>
+    </div>
+
+    <a
+    class="link"
+        href="{{ url_for('static', filename='files/resume/' ~ application.resume) }}" target="_blank"
+    >
+          View Resume
+    </a>
+
+    <div class="application-actions">
+      {% if application.status != 'offer_received' %}
+        {% if application.status == 'interview_scheduled' %}
+          <a href="{{ url_for('job_views.cancel_interview', application_id=application.id) }}" class="btn cancel-btn">Cancel Interview</a>
+        {% else %}
+          <a href="{{ url_for('job_views.schedule_interview', application_id=application.id) }}" class="btn schedule-btn">Schedule Interview</a>
+        {% endif %}
+
+        <a href="{{ url_for('job_views.offer_job', application_id=application.id) }}" class="btn offer-btn">Offer Job</a>
+        <a href="{{ url_for('job_views.reject_application', application_id=application.id) }}" class="btn reject-btn">Reject</a>
+      {% else %}
+        <a href="{{ url_for('job_views.cancel_offer', application_id=application.id) }}" class="normal-btn cancel-btn">Cancel Offer</a>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

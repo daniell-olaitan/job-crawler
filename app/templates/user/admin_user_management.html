@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}User Management | Job Crawler{% endblock %}
+
+{% block content %}
+<div class="content-container admin-container">
+    <h2>User Management</h2>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                    {% if user.status == 'active' %}
+                        <span class="badge active">Active</span>
+                    {% elif user.status == 'inactive' %}
+                        <span class="badge inactive">Inactive</span>
+                    {% endif %}
+                <td class="actions">
+                    <a href="{{ url_for('user_views.profile', user_id=user.id) }}" class="btn-small btn-green">View Details</a>
+                    <a href="{{ url_for('user_views.delete_user', user_id=user.id) }}" class="btn-small btn-danger">Delete</a>
+                    {% if user.status == 'active' %}
+                    <a href="{{ url_for('user_views.suspend_user', user_id=user.id) }}" class="btn-small btn-warning">Suspend</a>
+                    {% elif user.status == 'inactive' %}
+                    <a href="{{ url_for('user_views.activate_user', user_id=user.id) }}" class="btn-small btn-green">Activate</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

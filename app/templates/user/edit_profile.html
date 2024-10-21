@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile | Job Crawler{% endblock %}
+
+{% block content %}
+<div class="edit-profile-container">
+    <h2>Edit Profile</h2>
+
+    <form action="{{ url_for('user_views.edit_profile') }}" method="POST" enctype="multipart/form-data" class="form-gen" novalidate>
+        {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="name">Name</label>
+                {{ form.name(class="form-input") }}
+                {% if form.name.errors %}
+                    <div class="form-error">
+                        {{ form.name.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                {{ form.email(class="form-input") }}
+                {% if form.email.errors %}
+                    <div class="form-error">
+                        {{ form.email.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="profile_picture">Profile Picture</label>
+                {{ form.profile_picture(class="form-input", id="profile_picture") }}
+                {% if form.profile_picture.errors %}
+                    <div class="form-error">
+                        {{ form.profile_picture.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="about">{{ form.about.label }}</label>
+                {{ form.about(class="form-input", id="about", rows="6", placeholder="Tell us about yourself...") }}
+                {% if form.about.errors %}
+                    <div class="form-error">
+                        {{ form.about.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location</label>
+                {{ form.location(class="form-input", id="location") }}
+                {% if form.location.errors %}
+                    <div class="form-error">
+                        {{ form.location.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="website">Website</label>
+                {{ form.website(class="form-input", id="website") }}
+                {% if form.website.errors %}
+                    <div class="form-error">
+                        {{ form.website.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if current_user.role == 'Job Seeker' %}
+                <div class="form-group">
+                    <label for="skills">Skills</label>
+                    {{ form.skills(class="form-input", id="skills") }}
+                    {% if form.skills.errors %}
+                        <div class="form-error">
+                            {{ form.skills.errors[0] }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="resume">{{ form.resume.label }}</label>
+                    {{ form.resume(class="form-input", id="resume") }}
+                    {% if form.resume.errors %}
+                        <div class="form-error">
+                            {{ form.resume.errors[0] }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if current_user.role == 'Company' %}
+                <div class="form-group">
+                    <label for="industry">Industry</label>
+                    {{ form.industry(class="form-input", id="industry") }}
+                    {% if form.industry.errors %}
+                        <div class="form-error">
+                            {{ form.industry.errors[0] }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results | Job Crawler{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h2>Search Results for "{{ search_query }}"</h2>
+    <div class="job-listings">
+        {% if jobs %}
+            {% for job in jobs %}
+                <div class="job-card">
+                    <h3>{{ job.title }}</h3>
+                    <p><strong>Company:</strong> {{ job.company.user.name }}</p>
+                    <p><strong>Location:</strong> {{ job.location }}</p>
+                    <p><strong>Type:</strong> {{ job.job_type }}</p>
+                    <p><strong>Posted:</strong> {{ job.created_at.strftime('%Y-%m-%d') }}</p>
+                    <a href="{{ url_for('job_views.view_job_details', job_id=job.id) }}" class="btn job-detail-btn">View Details</a>
+                </div>
+            {% endfor %}
+        {% else %}
+        <p>No jobs found for "{{ search_query }}". Please try a different search.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Job Seeker Dashboard - Job Crawler{% endblock %}
+
+{% block content %}
+    <div class="content-container">
+        <h2 class="spec-title">Dashboard</h2>
+
+        <div class="dashboard-section">
+            <div class="table-head">
+                <h3>Your Job Applications</h3>
+                <div class="saved-jobs-btn">
+                    <a href="{{ url_for('job_views.view_saved_jobs') }}" class="btn">View Saved Jobs</a>
+                </div>
+            </div>
+
+            <table class="job-table">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Date Applied</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                    <tr>
+                        <td>{{ application.job.title }}</td>
+                        <td>{{ application.job.company.user.name }}</td>
+                        <td>{{ application.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if application.status == 'submitted' %}
+                                <span class="badge submitted">Submitted</span>
+                            {% elif application.status == 'under_review' %}
+                                <span class="badge review">Under Review</span>
+                            {% elif application.status == 'interview_scheduled' %}
+                                <span class="badge interview">Interview Scheduled</span>
+                            {% elif application.status == 'rejected' %}
+                                <span class="badge rejected">Rejected</span>
+                            {% else %}
+                                <span class="badge offer">Offer Received</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions">
+                            <!-- View Job Button -->
+                            <a href="{{ url_for('job_views.view_job_details', job_id=application.job.id) }}" class="btn-table">View Job</a>
+
+                            <!-- Withdraw Application Button -->
+                            <a href="{{ url_for('job_views.cancel_job_application', job_id=application.job.id) }}" class="btn-table withdraw-btn">Withdraw</a>
+
+                            <!-- Update Documents Button -->
+                            <a href="{{ url_for('job_views.update_job_application', job_id=application.job.id) }}" class="btn-table">Update Docs</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Message if no applications are found -->
+            {% if applications|length == 0 %}
+                <p class="nil">You have not applied for any jobs yet.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

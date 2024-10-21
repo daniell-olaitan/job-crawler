@@ -3,7 +3,6 @@
 Module for the app configurations
 """
 from os import getenv
-from datetime import timedelta
 from urllib.parse import quote_plus
 
 
@@ -11,11 +10,17 @@ class Config:
     SECRET_KEY = getenv('SECRET_KEY')
     DB_HOST = getenv('DB_HOST') or 'localhost'
     DB_PORT = getenv('DB_PORT') or 27017
-    DB_NAME = getenv('DB_NAME')
-    JWT_SECRET_KEY = getenv('JWT_SECRET_KEY')
-    JWT_BLACKLIST_ENABLED = True
-    JWT_BLACKLIST_TOKEN_CHECKS = ['access']
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=5)
+    DB_NAME = getenv('DB_NAME') or 'job_crawler_db'
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = getenv('MAIL_USERNAME')
+    MAIL_PASSWORD = getenv('MAIL_PASSWORD')
+    MAIL_SENDER = getenv('MAIL_SENDER')
+    SECURITY_PASSWORD_SALT = getenv('SECURITY_PASSWORD_SALT')
+    RESUME_UPLOAD_FOLDER = getenv('RESUME_UPLOAD_FOLDER')
+    IMAGE_UPLOAD_FOLDER = getenv('IMAGE_UPLOAD_FOLDER')
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
 
 
 class TestConfig(Config):
@@ -37,7 +42,6 @@ class DeployConfig(Config):
 
 
 config = {
-    'default': TestConfig,
     'test': TestConfig,
     'dev': DevConfig,
     'deploy': DeployConfig
