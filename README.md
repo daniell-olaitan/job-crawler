@@ -79,15 +79,6 @@
 - **Manage jobs** posted by companies and view job seeker applications.
 - Super Admins can create or delete ordinary admins.
 
-## Demo
-
-_Demo coming soon.._
-
-## Screenshots
-
-![Job Listing Screenshot](path/to/job-listing-screenshot.png)
-![Company Dashboard Screenshot](path/to/company-dashboard-screenshot.png)
-
 ## Future Features
 
 - **Web scraping** of job postings from external job boards.
@@ -102,5 +93,5 @@ This project is licensed under the **Apache License, Version 2.0**. You may obta
 ## Contact
 
 - **Email**: [daniell.olaitan@gmail.com](mailto:daniell.olaitan@gmail.com)
-- **Website**: [daniell-olaitan.com](https://daniell-olaitan.com)
+- **Portfolio**: [portfolio](https://github.com/daniell-olaitan)
 - **LinkedIn**: [Daniell Olaitan](https://www.linkedin.com/in/daniell-olaitan)
