@@ -31,7 +31,7 @@
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/job-crawler.git
+   git clone https://github.com/daniell-olaitan/job-crawler.git
    cd job-crawler
    ```
 
